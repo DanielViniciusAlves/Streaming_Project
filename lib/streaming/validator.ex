@@ -1,4 +1,4 @@
-defmodule Twitch.User.Validator do
+defmodule Streaming.User.Validator do
   use GenServer, restart: :temporary
   require Logger
 
@@ -14,7 +14,7 @@ defmodule Twitch.User.Validator do
     {:ok, %{rtmp_pid: rtmp_pid, user_pid: nil, user_key: nil, stream_uid: nil}}
   end
 
-  # Genserver API 
+  # Genserver API
   def validate_rtmp(pid, stream_key) do
     GenServer.call(pid, {:validate_rtmp, stream_key})
   end
@@ -50,7 +50,7 @@ defmodule Twitch.User.Validator do
   def handle_call(:get_directory, _from, state) do
     stream_uid = UUID.uuid4(:hex)
 
-    directory_path = "output/#{stream_uid}" 
+    directory_path = "output/#{stream_uid}"
     case File.mkdir(directory_path) do
       :ok ->
         Logger.info "Directory created for stream #{stream_uid}"
@@ -71,7 +71,7 @@ defmodule Twitch.User.Validator do
           Logger.error "User UID #{user_uid} not found!"
           :error
 
-        pid -> 
+        pid ->
           user_stream_key = UserServer.get_stream_key(pid)
           cond do
             user_stream_key == stream_key ->

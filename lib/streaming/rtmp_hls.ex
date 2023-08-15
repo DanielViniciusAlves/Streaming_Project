@@ -1,9 +1,9 @@
-defmodule Twitch.RTMP.HLS do
+defmodule Streaming.RTMP.HLS do
   use Membrane.Pipeline
   alias Membrane.RTMP.SourceBin
-  alias Twitch.RTMP.Validator, as: RTMPValidator
-  alias Twitch.User.Validator.Supervisor, as: UserValidatorSupervisor
-  alias Twitch.User.Validator, as: UserValidator
+  alias Streaming.RTMP.Validator, as: RTMPValidator
+  alias Streaming.User.Validator.Supervisor, as: UserValidatorSupervisor
+  alias Streaming.User.Validator, as: UserValidator
 
   @impl true
   def handle_init(_context, socket: socket) do

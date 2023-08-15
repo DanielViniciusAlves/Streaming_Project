@@ -1,9 +1,9 @@
-defmodule Twitch.Application do
+defmodule Streaming.Application do
   use Application
-  alias Twitch.Router
+  alias Streaming.Router
 
   alias Membrane.RTMP.Source.TcpServer
-  alias Twitch.User.Validator.Supervisor, as: UserValidatorSupervisor
+  alias Streaming.User.Validator.Supervisor, as: UserValidatorSupervisor
 
   @port 9000
   @local_ip {127, 0, 0, 1}
@@ -19,7 +19,7 @@ defmodule Twitch.Application do
         ip: @local_ip
       ],
       socket_handler: fn socket ->
-        {:ok, _sup, pid} = Twitch.RTMP.HLS.start_link(socket: socket)
+        {:ok, _sup, pid} = Streaming.RTMP.HLS.start_link(socket: socket)
         {:ok, pid}
       end
     }
@@ -33,7 +33,7 @@ defmodule Twitch.Application do
      {Plug.Cowboy, scheme: :http, plug: Router, options: [port: 4001]}
     ]
 
-    opts = [strategy: :one_for_one, name: Twitch.Supervisor]
+    opts = [strategy: :one_for_one, name: Streaming.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

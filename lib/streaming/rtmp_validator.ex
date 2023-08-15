@@ -1,12 +1,12 @@
-defmodule Twitch.RTMP.Validator do
+defmodule Streaming.RTMP.Validator do
 
   defstruct [
     :validator_pid,
   ]
 end
 
-defimpl Membrane.RTMP.MessageValidator, for: Twitch.RTMP.Validator do
-  alias Twitch.User.Validator, as: UserValidator
+defimpl Membrane.RTMP.MessageValidator, for: Streaming.RTMP.Validator do
+  alias Streaming.User.Validator, as: UserValidator
 
   @impl Membrane.RTMP.MessageValidator
   def validate_set_data_frame(_info, _message) do

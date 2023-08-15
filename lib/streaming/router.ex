@@ -1,4 +1,4 @@
-defmodule Twitch.Router do
+defmodule Streaming.Router do
   use Plug.Router
 
   plug Corsica, max_age: 600, origins: "*", expose_headers: ~w(X-Foo)
@@ -20,7 +20,7 @@ defmodule Twitch.Router do
     file_path = "output/#{filename}"
 
     # Get user stream uid in the database
-    
+
     if File.exists?(file_path) do
       Plug.Conn.send_file(conn, 200, file_path)
     else
@@ -30,5 +30,5 @@ defmodule Twitch.Router do
 
   match _ do
     send_resp(conn, 404, "Oops!")
-  end  
+  end
 end

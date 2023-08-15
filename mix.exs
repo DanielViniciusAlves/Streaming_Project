@@ -1,9 +1,9 @@
-defmodule Twitch.MixProject do
+defmodule Streaming.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :twitch,
+      app: :streaming,
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
@@ -15,7 +15,7 @@ defmodule Twitch.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Twitch.Application, []}
+      mod: {Streaming.Application, []}
     ]
   end
 

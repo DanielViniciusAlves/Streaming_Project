@@ -1,4 +1,4 @@
-defmodule Twitch do
+defmodule Streaming do
   def hello do
     :world
   end
