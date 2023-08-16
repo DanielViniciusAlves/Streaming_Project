@@ -4,6 +4,7 @@ defmodule Streaming.Application do
 
   alias Membrane.RTMP.Source.TcpServer
   alias Streaming.User.Validator.Supervisor, as: UserValidatorSupervisor
+  alias Streaming.Router.WebsocketRouter, as: WebSocketRouter
 
   @port 9000
   @local_ip {127, 0, 0, 1}
@@ -24,16 +25,31 @@ defmodule Streaming.Application do
       end
     }
 
+    cowboy_options = [
+      port: 4000,
+      dispatch: dispatch()
+    ]
+
     children = [
       UserValidatorSupervisor,
       %{
         id: TcpServer,
         start: {TcpServer, :start_link, [tcp_server_options]}
       },
-     {Plug.Cowboy, scheme: :http, plug: Router, options: [port: 4001]}
+      {Plug.Cowboy, scheme: :http, plug: Router, options: cowboy_options}
     ]
 
     opts = [strategy: :one_for_one, name: Streaming.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp dispatch() do
+    [
+      {:_,
+       [
+         {"/ws/[...]", WebSocketRouter, []},
+         {:_, Plug.Cowboy.Handler, {Router, []}}
+       ]}
+    ]
   end
 end
