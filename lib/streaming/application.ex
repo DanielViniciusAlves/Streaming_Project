@@ -5,6 +5,7 @@ defmodule Streaming.Application do
   alias Membrane.RTMP.Source.TcpServer
   alias Streaming.User.Validator.Supervisor, as: UserValidatorSupervisor
   alias Streaming.Router.WebsocketRouter, as: WebSocketRouter
+  alias Streaming.User.Supervisor, as: UserSupervisor
 
   @port 9000
   @local_ip {127, 0, 0, 1}
@@ -31,6 +32,7 @@ defmodule Streaming.Application do
     ]
 
     children = [
+      UserSupervisor,
       UserValidatorSupervisor,
       %{
         id: TcpServer,
