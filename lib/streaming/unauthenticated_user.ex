@@ -1,5 +1,5 @@
 defmodule Streaming.Unauthenticated.User do
-  alias Streaming.Unauthenticated
+  alias Streaming.User.Supervisor, as: UserSupervisor
   use GenServer, restart: :temporary
   require Logger
 
@@ -12,28 +12,59 @@ defmodule Streaming.Unauthenticated.User do
   end
 
   def init({websocket_pid}) do
-    Logger.info "Unauthenticated user started"
+    Logger.info("Unauthenticated user started")
 
-    {:ok, %{websocket_pid: websocket_pid}}
+    {:ok, %{websocket_pid: websocket_pid}, 5000}
   end
 
   def handle_cast({:websocket, message}, state) do
-    # case treat_websocket_msg(message) do
-    #   {:ok, state} ->
-    #     {:ok, state}
-    #   {:error, reason} ->
-    #     Logger.error "Error treating message: #{reason}"
-    #     {:ok, state}
-    # end
-    send(state.websocket_pid, :disconnect)
-    {:noreply, state}
+    case treat_websocket_msg(message, state) do
+      :ok ->
+        {:stop, :normal, state}
+
+      {:error, reason} ->
+        Logger.error("Error treating message: #{reason}")
+        send(state.websocket_pid, :disconnect)
+        {:stop, :normal, state}
+    end
   end
 
   def handle_cast(:disconnect, state) do
     {:stop, :normal, state}
   end
 
-  def treat_websocket_msg(message) do
-    
+  def handle_info(:timeout, state) do
+    Logger.error("Connection timeout.")
+    send(state.websocket_pid, :disconnect)
+    {:stop, :normal, state}
+  end
+
+  defp treat_websocket_msg(message, state) do
+    case Jason.decode(message) do
+      {:ok, decoded_msg} ->
+        with uid when is_integer(uid) <- Map.get(decoded_msg, "uid"),
+             name when is_binary(name) <- Map.get(decoded_msg, "name") do
+          case check_database(name, uid) do
+            :ok ->
+              pid = UserSupervisor.start_user(name, uid, state.websocket_pid)
+              send(state.websocket_pid, {:update_user, pid})
+              :ok
+
+            {:error, reason} ->
+              {:error, reason}
+          end
+        else
+          _ ->
+            {:error, "Invalid UID or Name format in message."}
+        end
+
+      {:error, reason} ->
+        {:error, "Error decoding message #{reason.data}."}
+    end
+  end
+
+  defp check_database(name, pid) do
+    # Verify data in database
+    :ok
   end
 end
