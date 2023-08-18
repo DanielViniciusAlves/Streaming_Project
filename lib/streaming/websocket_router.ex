@@ -6,7 +6,14 @@ defmodule Streaming.Router.WebsocketRouter do
 
   def init(req, state) do
     Logger.info("Starting websocket user.")
-    {:cowboy_websocket, req, state}
+    case validate_header(req.headers["user_info"]) do
+      :ok ->
+        {:cowboy_websocket, req, state}
+      
+      {:error, reason} ->
+        Logger.error(reason)
+        {:stop, :normal, state}
+    end
   end
 
   # Start websocket and create unathenticated user
@@ -62,12 +69,18 @@ defmodule Streaming.Router.WebsocketRouter do
   # Terminate callback for connection loss
 
   def terminate(reason, _req, state) do
-    Logger.info("ws - disconnected, reason: #{inspect(reason)}, #{inspect(state)}")
+    Logger.info("Websocket disconnected: #{inspect(reason)}, #{inspect(state)}")
 
     if Keyword.get(state, :user_pid) do
       GenServer.cast(Keyword.get(state, :user_pid), :disconnected)
     end
 
+    :ok
+  end
+
+  def validate_header(info) do
+    IO.inspect info
+    # Verify if the database has this info
     :ok
   end
 end
