@@ -2,7 +2,7 @@ defmodule Streaming.User.Supervisor do
   use DynamicSupervisor
   require Logger
 
-  alias Streaming.User
+  alias Streaming.Authenticated.User, as: AuthenticatedUserUser
   alias Streaming.Unauthenticated.User, as: UnauthenticatedUser 
 
   def start_link(_opts) do
@@ -14,7 +14,7 @@ defmodule Streaming.User.Supervisor do
   end
 
   def start_user(name, uid, websocket_pid) do
-    DynamicSupervisor.start_child(__MODULE__, Supervisor.child_spec({User, {name, uid, websocket_pid}}, []))
+    DynamicSupervisor.start_child(__MODULE__, Supervisor.child_spec({AuthenticatedUserUser, {name, uid, websocket_pid}}, []))
   end
 
   def init(:ok) do
