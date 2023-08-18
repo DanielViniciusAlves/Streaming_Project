@@ -14,7 +14,7 @@ defmodule Streaming.Unauthenticated.User do
   def init({websocket_pid}) do
     Logger.info("Unauthenticated user started")
 
-    {:ok, %{websocket_pid: websocket_pid}, 5000}
+    {:ok, %{websocket_pid: websocket_pid}}
   end
 
   def handle_cast({:websocket, message}, state) do
@@ -29,13 +29,8 @@ defmodule Streaming.Unauthenticated.User do
     end
   end
 
-  def handle_cast(:disconnect, state) do
-    {:stop, :normal, state}
-  end
-
-  def handle_info(:timeout, state) do
-    Logger.error("Connection timeout.")
-    send(state.websocket_pid, :disconnect)
+  def handle_cast(:disconnected, state) do
+    Logger.error("Websocket connection closed.")
     {:stop, :normal, state}
   end
 
