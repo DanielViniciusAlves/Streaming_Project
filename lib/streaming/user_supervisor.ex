@@ -13,8 +13,8 @@ defmodule Streaming.User.Supervisor do
     DynamicSupervisor.start_child(__MODULE__, Supervisor.child_spec({UnauthenticatedUser, {websocket_pid}}, []))
   end
 
-  def start_user(state) do
-    DynamicSupervisor.start_child(__MODULE__, Supervisor.child_spec({User, {state}}, []))
+  def start_user(name, uid, websocket_pid) do
+    DynamicSupervisor.start_child(__MODULE__, Supervisor.child_spec({User, {name, uid, websocket_pid}}, []))
   end
 
   def init(:ok) do
