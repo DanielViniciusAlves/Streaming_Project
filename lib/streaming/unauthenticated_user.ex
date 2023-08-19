@@ -41,9 +41,16 @@ defmodule Streaming.Unauthenticated.User do
              name when is_binary(name) <- Map.get(decoded_msg, "name") do
           case check_database(name, uid) do
             :ok ->
-              pid = UserSupervisor.start_user(name, uid, state.websocket_pid)
-              send(state.websocket_pid, {:update_user, pid})
-              :ok
+              case Swarm.whereis_name(uid) do
+                :undefined ->
+                  pid = UserSupervisor.start_user(name, uid, state.websocket_pid)
+                  Swarm.register_name(uid, pid)
+                  send(state.websocket_pid, {:update_user, pid})
+                  :ok
+
+                _ ->
+                  {:error, "User not connected."}
+              end
 
             {:error, reason} ->
               {:error, reason}
