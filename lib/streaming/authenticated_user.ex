@@ -2,6 +2,8 @@ defmodule Streaming.Authenticated.User do
   use GenServer, restart: :temporary
   require Logger
 
+  alias Streaming.UserState
+
   def start_link(opts, args) do
     GenServer.start_link(__MODULE__, args, opts)
   end
@@ -13,6 +15,64 @@ defmodule Streaming.Authenticated.User do
   def init({name, uid, websocket_pid}) do
     Logger.info("Unauthenticated user started")
 
-    {:ok, %{websocket_pid: websocket_pid}}
+    state = %UserState{
+      websocket_pid: websocket_pid,
+      user_uid: uid,
+      username: name,
+      live_status: :offline,
+      stream_uid: nil,
+      stream_pid: nil,
+      stream_key: request_database(uid, :stream_key)
+    }
+
+    {:ok, state}
+  end
+
+  # Genserver API
+
+  def get_stream_key(pid) do
+    GenServer.call(pid, :stream_key)
+  end
+
+  def register_stream(pid, stream_uid, stream_pid) do
+    GenServer.cast(pid, {:update_stream, stream_uid, stream_pid})
+  end
+
+  # Genserver callback funcionts
+
+  def handle_call(:stream_key, _from, state) do
+    {:reply, state.stream_key, state}
+  end
+
+  def handle_cast({:update_stream, stream_uid, stream_pid}, state) do
+    {:noreply, %{state | stream_uid: stream_uid, stream_pid: stream_pid}}
+  end
+
+  def handle_cast({:websocket, message}, state) do
+    case treat_websocket_msg(message, state) do
+      {:ok, state} ->
+        {:noreply, state}
+
+      {:error, reason} ->
+        Logger.error("Error treating message: #{reason}")
+        send(state.websocket_pid, :disconnect)
+        {:stop, :normal, state}
+    end
+  end
+
+  defp treat_websocket_msg(message, state) do
+    case Jason.decode(message) do
+      {:ok, _decoded_msg} ->
+        {:ok, state}
+
+      # message_handler(decoded_msg, state)
+      {:error, reason} ->
+        {:error, "Error decoding message #{reason.data}."}
+    end
+  end
+
+  defp request_database(_user_uid, _field) do
+    # Database request
+    "teste123"
   end
 end
