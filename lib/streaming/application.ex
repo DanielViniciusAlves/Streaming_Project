@@ -38,7 +38,8 @@ defmodule Streaming.Application do
         id: TcpServer,
         start: {TcpServer, :start_link, [tcp_server_options]}
       },
-      {Plug.Cowboy, scheme: :http, plug: Router, options: cowboy_options}
+      {Plug.Cowboy, scheme: :http, plug: Router, options: cowboy_options},
+      {Phoenix.PubSub, name: Streaming.LivestreamChat.PubSub}
     ]
 
     opts = [strategy: :one_for_one, name: Streaming.Supervisor]

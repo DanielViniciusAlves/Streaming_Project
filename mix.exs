@@ -32,6 +32,7 @@ defmodule Streaming.MixProject do
       {:corsica, "~> 2.0"},
       {:uuid, "~> 1.1"},
       {:swarm, "~> 3.0"},
+      {:phoenix_pubsub, "~> 2.0"},
       {:cowboy, "~> 2.9"}
     ]
   end
