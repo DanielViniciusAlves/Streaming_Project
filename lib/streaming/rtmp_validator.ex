@@ -15,21 +15,22 @@ defimpl Membrane.RTMP.MessageValidator, for: Streaming.RTMP.Validator do
 
   @impl Membrane.RTMP.MessageValidator
   def validate_publish(info, message) do
-    case UserValidator.validate_rtmp(info.validator_pid, message.stream_key) do
-      true ->
+    # case UserValidator.validate_rtmp(info.validator_pid, message.stream_key) do
+    #   true ->
+    #     GenServer.stop(info.validator_pid)
         {:ok, "Validate publish message successfull"}
-      _ ->
-        {:error, "Error in the publish validation"}
-    end
+    #   _ ->
+    #     {:error, "Error in the publish validation"}
+    # end
   end
 
   @impl Membrane.RTMP.MessageValidator
   def validate_release_stream(info, message) do
-    case UserValidator.validate_rtmp(info.validator_pid, message.stream_key) do
-      true ->
+    # case UserValidator.validate_rtmp(info.validator_pid, message.stream_key) do
+    #   true ->
         {:ok, "Validate release message successfull"}
-      _ ->
-        {:error, "Error in the release validation"}
-    end
+      # _ ->
+      #   {:error, "Error in the release validation"}
+    # end
   end
 end

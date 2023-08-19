@@ -1,6 +1,7 @@
 defmodule Streaming.User.Validator do
   use GenServer, restart: :temporary
   require Logger
+  alias Streaming.Authenticated.User, as: AuthenticatedUser 
 
   def start_link(opts, args) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -25,18 +26,19 @@ defmodule Streaming.User.Validator do
 
   # Genserver Implementation
   def handle_call({:validate_rtmp, rtmp_key}, _from, state) do
-    [user_uid | stream_key]= String.split(rtmp_key, "_")
+    [user_uid | stream_key] = String.split(rtmp_key, "_")
+
     case stream_validation(user_uid, stream_key, state) do
       :error ->
-
         Logger.error("Stream validation Failed")
+
         if File.exists?("output/#{state.stream_uid}") do
           case File.rm_rf("output/#{state.stream_uid}") do
             {:ok, _} ->
-              Logger.info "Directory removed successfully."
+              Logger.info("Directory removed successfully.")
 
             {:error, reason, _} ->
-              Logger.error "Failed to remove directory: #{reason}"
+              Logger.error("Failed to remove directory: #{reason}")
           end
         end
 
@@ -51,12 +53,13 @@ defmodule Streaming.User.Validator do
     stream_uid = UUID.uuid4(:hex)
 
     directory_path = "output/#{stream_uid}"
+
     case File.mkdir(directory_path) do
       :ok ->
-        Logger.info "Directory created for stream #{stream_uid}"
+        Logger.info("Directory created for stream #{stream_uid}")
 
       {:error, reason} ->
-        Logger.error "Failed to create directory: #{reason}"
+        Logger.error("Failed to create directory: #{reason}")
     end
 
     {:reply, directory_path, %{state | stream_uid: stream_uid}}
@@ -67,28 +70,31 @@ defmodule Streaming.User.Validator do
     case state.user_key do
       nil ->
         case Swarm.whereis_name(user_uid) do
-         :undefined ->
-          Logger.error "User UID #{user_uid} not found!"
-          :error
+          :undefined ->
+            Logger.error("User UID #{user_uid} not found!")
+            :error
 
-        pid ->
-          user_stream_key = UserServer.get_stream_key(pid)
-          cond do
-            user_stream_key == stream_key ->
-              UserServer.defines_stream_uid(pid, state.stream_uid)
-              {:ok, %{state | user_key: user_stream_key}}
-            true ->
-              Logger.error "Stream Key not valid!"
-              :error
-          end
+          pid ->
+            user_stream_key = AuthenticatedUser.get_stream_key(pid)
+
+            cond do
+              user_stream_key == stream_key ->
+                AuthenticatedUser.register_stream(pid, state.stream_uid, state.rtmp_pid)
+                {:ok, %{state | user_key: user_stream_key}}
+
+              true ->
+                Logger.error("Stream Key not valid!")
+                :error
+            end
         end
 
       user_stream_key ->
         cond do
           user_stream_key == stream_key ->
             {:ok, state}
+
           true ->
-            Logger.error "Stream Key not valid!"
+            Logger.error("Stream Key not valid!")
             :error
         end
     end
