@@ -1,6 +1,7 @@
 defmodule Streaming.Router.WebsocketRouter do
   @behaviour :cowboy_websocket_handler
 
+  alias Streaming.Authenticated.User, as: AuthenticatedUser
   alias Streaming.User.Supervisor, as: UserSupervisor
   require Logger
 
@@ -26,17 +27,17 @@ defmodule Streaming.Router.WebsocketRouter do
   # API for Websocket messages
 
   def websocket_handle({:ping, message}, state) do
-    GenServer.cast(Keyword.get(state, :user_pid), {:websocket, message})
+    AuthenticatedUser.websocket_message(Keyword.get(state, :user_pid), message)
     {:ok, state}
   end
 
   def websocket_handle({:binary, message}, state) do
-    GenServer.cast(Keyword.get(state, :user_pid), {:websocket, message})
+    AuthenticatedUser.websocket_message(Keyword.get(state, :user_pid), message)
     {:ok, state}
   end
 
   def websocket_handle({:text, message}, state) do
-    GenServer.cast(Keyword.get(state, :user_pid), {:websocket, message})
+    AuthenticatedUser.websocket_message(Keyword.get(state, :user_pid), message)
     {:ok, state}
   end
 
@@ -73,7 +74,6 @@ defmodule Streaming.Router.WebsocketRouter do
     Logger.error("Websocket disconnected: #{inspect(reason)}, #{inspect(state)}")
 
     if Keyword.get(state, :user_pid) do
-      IO.inspect(Keyword.get(state, :user_pid))
       GenServer.cast(Keyword.get(state, :user_pid), :disconnected)
     end
 
