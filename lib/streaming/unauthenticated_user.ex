@@ -30,7 +30,7 @@ defmodule Streaming.Unauthenticated.User do
   end
 
   def handle_cast(:disconnected, state) do
-    Logger.error("Websocket connection closed.")
+    Logger.error("Websocket connection closed on unauthenticated user.")
     {:stop, :normal, state}
   end
 

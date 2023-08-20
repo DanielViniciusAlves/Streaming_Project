@@ -3,7 +3,6 @@ defmodule Streaming.Application do
   alias Streaming.Router
 
   alias Membrane.RTMP.Source.TcpServer
-  alias Streaming.User.Validator.Supervisor, as: UserValidatorSupervisor
   alias Streaming.Router.WebsocketRouter, as: WebSocketRouter
   alias Streaming.User.Supervisor, as: UserSupervisor
 
@@ -33,7 +32,6 @@ defmodule Streaming.Application do
 
     children = [
       UserSupervisor,
-      UserValidatorSupervisor,
       %{
         id: TcpServer,
         start: {TcpServer, :start_link, [tcp_server_options]}
